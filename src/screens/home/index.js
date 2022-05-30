@@ -1,13 +1,13 @@
 import react, { useContext, useState } from 'react';
 import { StyleSheet, View, FlatList, Alert } from 'react-native';
 import { DatePicker } from './components/DatePicker';
-import { Button } from "@rneui/base";
+import { Button, Text } from "@rneui/base";
 import CardCotation from './components/CardCotation';
 import HomeContext from '../../context/context';
 import axios from 'axios';
-import { getDataFromTimestamp, padTo2Digits } from '../../helpers/Date';
+import { padTo2Digits } from '../../helpers/Date';
 
-const endPoint = 'https://economia.awesomeapi.com.br';
+const endPoint = `https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/CotacaoDolarPeriodo(dataInicial=@dataInicial,dataFinalCotacao=@dataFinalCotacao)?@`;
 
 export default function Home() {
   const [initialDate, setInitialDate] = useState(new Date());
@@ -19,7 +19,7 @@ export default function Home() {
     const month = padTo2Digits(dateToFormat.getMonth() + 1);
     const year = dateToFormat.getFullYear();
 
-    return `${year}${month}${day}`
+    return `${month}-${day}-${year}`
   }
 
   const fetchData = async () => {
@@ -29,12 +29,14 @@ export default function Home() {
         cotation: [],
         loading: true,
       });
+      const url = `${endPoint}dataInicial='${formatDate(initialDate)}'&@dataFinalCotacao='${formatDate(finalDate)}'&$top=50&$format=json`;
 
-      const { data } = await axios.get(`${endPoint}/USD-BRL/10?start_date=${formatDate(initialDate)}&end_date=${formatDate(finalDate)}`)
-      
+      const { data } = await axios.get(url);
+      const { value = [] } = data;
+
       setState({
         ...state,
-        cotation: data,
+        cotation: value,
         loading: false,
       });
     } catch ({ message }) {
@@ -74,17 +76,23 @@ export default function Home() {
         />      
       </View>
       <FlatList
-        keyExtractor={({timestamp}) => timestamp}
+        keyExtractor={({dataHoraCotacao}) => dataHoraCotacao}
         data={state.cotation}
         contentContainerStyle={{ marginBottom: 10 }}
         renderItem={({ item }) => (
           <CardCotation
-            name={state.cotation[0].name}
-            low={item.low}
-            high={item.high}
-            date={getDataFromTimestamp(item.timestamp)}
+            cotacaoVenda={item.cotacaoVenda}
+            cotacaoCompra={item.cotacaoCompra}
+            dataHoraCotacao={item.dataHoraCotacao}
           /> 
         )}
+        ListHeaderComponent={state.cotation.length > 0 ?
+          (<Text
+            style={{ textAlign: 'center' }}
+            h4
+          >
+            Cotação dólar comercial
+          </Text>) : <></>}
       />
     </View>
   );

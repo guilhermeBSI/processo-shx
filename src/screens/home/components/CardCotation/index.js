@@ -1,19 +1,18 @@
 import React from 'react';
 import { StyleSheet } from 'react-native';
 import { Text, Card } from '@rneui/themed';
-import { getDateString } from '../../../../helpers/Date';
 
 
-const CardCotation = ({ name, low, high, date }) => {
+const CardCotation = ({ cotacaoCompra, cotacaoVenda, dataHoraCotacao }) => {
   return (
   <Card>
-    <Card.Title>{`${name} - ${getDateString(date)}`}</Card.Title>
+    <Card.Title>{`Data ${dataHoraCotacao}`}</Card.Title>
       <Card.Divider />
       <Text style={styles.fonts}>
-        Alta: {high}
+        Compra: {cotacaoCompra}
       </Text>
       <Text style={styles.fonts}>
-        Baixa: {low}
+        Venda: {cotacaoVenda}
       </Text>
   </Card>
 );
